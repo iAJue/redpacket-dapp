@@ -1,0 +1,29 @@
+.wallet-connect {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wallet-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #667eea;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.wallet-btn:hover {
+  background-color: #5568d3;
+  transform: translateY(-2px);
+}
+
+.wallet-btn.connected {
+  background-color: #48bb78;
+}
+
+.wallet-btn.connected:hover {
+  background-color: #38a169;
+}
