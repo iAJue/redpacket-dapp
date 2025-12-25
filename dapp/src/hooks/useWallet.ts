@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { connectWallet, getAccount } from '../utils/web3';
+import { getFriendlyError } from '../utils/errors';
 
 export const useWallet = () => {
   const [account, setAccount] = useState<string | null>(null);
@@ -45,7 +46,8 @@ export const useWallet = () => {
       const acc = await connectWallet();
       setAccount(acc);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '无法连接钱包');
+      console.error(err instanceof Error ? err.message : err);
+      setError(getFriendlyError(err, '连接钱包失败，请稍后再试'));
     } finally {
       setIsLoading(false);
     }

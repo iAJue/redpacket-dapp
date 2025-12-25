@@ -43,6 +43,11 @@
   font-size: 12px;
 }
 
+.no-wallet-box .hint.error {
+  color: #ff4d4f;
+  font-size: 13px;
+}
+
 .wallet-btn.connect-inline {
   margin-top: 8px;
   padding: 10px 24px;

@@ -5,9 +5,10 @@ import { CreatePacket } from '../components/CreatePacket';
 type HomeProps = {
   account: string | null;
   onConnect: () => void | Promise<void>;
+  connectError?: string | null;
 };
 
-export const Home = ({ account, onConnect }: HomeProps) => {
+export const Home = ({ account, onConnect, connectError }: HomeProps) => {
   if (!account) {
     return (
       <div className="home-hero">
@@ -38,9 +39,10 @@ export const Home = ({ account, onConnect }: HomeProps) => {
             <div className="wallet-icon">🧧</div>
             <h2>尚未连接钱包</h2>
             <p className="hint">连接后即可创建红包或使用领取链接</p>
-            <button type="button" className="wallet-btn connect-inline" onClick={onConnect}>
-              立即连接
+            <button type="button" className="btn-open btn-connect" onClick={onConnect}>
+              🔗 连接钱包
             </button>
+            {connectError && <p className="hint error">{connectError}</p>}
           </div>
         </div>
       </div>

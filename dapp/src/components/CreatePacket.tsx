@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import { ethers } from 'ethers';
 import '../styles/CreatePacket.css';
 import { getContract, getProvider, toWei } from '../utils/web3';
+import { getFriendlyError } from '../utils/errors';
 
 type CreatePacketProps = {
   account: string | null;
@@ -67,8 +68,7 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
       setTotalAmount('');
       setTotalCount('');
     } catch (err) {
-      const message = err instanceof Error ? err.message : '创建红包失败';
-      setError(message);
+      setError(getFriendlyError(err, '创建红包失败'));
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -117,13 +117,13 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
       <div className="form-container">
         <div className="form-header">
           <h1>🎊 发链上红包</h1>
-          <p>随机金额、公开透明，和好友共享好运</p>
+          <p>链上红包 · 安全透明 · 去中心化 · 和好友共享好运</p>
         </div>
 
         {!shareLink ? (
           <form onSubmit={handleCreatePacket} className="packet-form">
             <div className="form-group">
-              <label htmlFor="amount">总金额 (BNB)</label>
+              <label htmlFor="amount">总金额 (ETH)</label>
               <div className="input-wrapper">
                 <span className="currency-symbol">币</span>
                 <input
@@ -159,12 +159,12 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
               <div className="summary-box">
                 <div className="summary-item">
                   <span>总金额</span>
-                  <strong>{Number(totalAmount).toFixed(4)} BNB</strong>
+                  <strong>{Number(totalAmount).toFixed(4)} ETH</strong>
                 </div>
                 <div className="summary-item">
                   <span>预计均值</span>
                   <strong>
-                    {(Number(totalAmount) / Math.max(Number(totalCount), 1)).toFixed(4)} BNB
+                    {(Number(totalAmount) / Math.max(Number(totalCount), 1)).toFixed(4)} ETH
                   </strong>
                 </div>
               </div>

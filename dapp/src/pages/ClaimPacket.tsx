@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { useParams } from 'react-router-dom';
 import '../styles/ClaimPacket.css';
 import { getContract, getProvider, parseWei } from '../utils/web3';
+import { getFriendlyError } from '../utils/errors';
 
 type ClaimPacketProps = {
   account: string | null;
   onConnect: () => void | Promise<void>;
+  connectError?: string | null;
 };
 
 type PacketInfo = {
@@ -16,7 +18,7 @@ type PacketInfo = {
   active: boolean;
 };
 
-export const ClaimPacket = ({ account, onConnect }: ClaimPacketProps) => {
+export const ClaimPacket = ({ account, onConnect, connectError }: ClaimPacketProps) => {
   const { packetId } = useParams<{ packetId: string }>();
   const [packetInfo, setPacketInfo] = useState<PacketInfo | null>(null);
   const [hasClaimed, setHasClaimed] = useState(false);
@@ -51,7 +53,7 @@ export const ClaimPacket = ({ account, onConnect }: ClaimPacketProps) => {
       }
     } catch (err) {
       console.error(err);
-      setError('无法获取红包信息');
+      setError(getFriendlyError(err, '无法获取红包信息'));
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +101,7 @@ export const ClaimPacket = ({ account, onConnect }: ClaimPacketProps) => {
       setTimeout(() => loadPacketInfo(), 2000);
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : '领取红包失败';
-      setError(message);
+      setError(getFriendlyError(err, '领取红包失败'));
     } finally {
       setClaimLoading(false);
     }
@@ -179,7 +180,7 @@ export const ClaimPacket = ({ account, onConnect }: ClaimPacketProps) => {
           <div className="status">
             {status === 'claimed'
               ? '🎉 领取成功，金额已打入钱包'
-              : '🎊 红包已被领取一空'}
+              : '🎊 红包已被领取完'}
           </div>
         )}
 
@@ -199,7 +200,7 @@ export const ClaimPacket = ({ account, onConnect }: ClaimPacketProps) => {
         <div className="packet-details">
           <div className="detail-item">
             <span className="detail-label">总金额</span>
-            <span className="detail-value">{packetInfo.totalAmount.toFixed(4)} BNB</span>
+            <span className="detail-value">{packetInfo.totalAmount.toFixed(4)} ETH</span>
           </div>
           <div className="detail-item">
             <span className="detail-label">数量</span>
@@ -224,12 +225,15 @@ export const ClaimPacket = ({ account, onConnect }: ClaimPacketProps) => {
           </div>
         </div>
 
-        <div className="action-section">
-          {!account ? (
-            <button className="btn-open btn-connect" type="button" onClick={onConnect}>
-              🔗 连接钱包
-            </button>
-          ) : canClaim ? (
+          <div className="action-section">
+            {!account ? (
+              <div className="connect-block">
+                <button className="btn-open btn-connect" type="button" onClick={onConnect}>
+                  🔗 连接钱包
+                </button>
+                {connectError && <p className="connect-warning">{connectError}</p>}
+              </div>
+            ) : canClaim ? (
             <button
               className={`btn-open ${claimLoading ? 'btn-loading' : ''}`}
               type="button"

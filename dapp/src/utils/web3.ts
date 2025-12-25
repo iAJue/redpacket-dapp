@@ -34,7 +34,7 @@ export const getContract = (signerOrProvider?: ethers.Provider | ethers.Signer) 
 
 export const connectWallet = async () => {
   if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('请先安装 MetaMask');
+    throw new Error('请先安装 Web3 钱包');
   }
 
   const accounts = (await window.ethereum.request({

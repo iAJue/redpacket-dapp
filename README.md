@@ -96,7 +96,7 @@ Hardhat 节点或 BSC 测试网都可以复用以上接口，部署脚本会把�
 ### Local Hardhat
 Network Name: Hardhat Localhost  
 RPC URL: http://127.0.0.1:8545  
-Chain ID: 31337 (0x7a69)  
+Chain ID: 1337 (0x7a69)  
 Currency Symbol: ETH  
 Block Explorer: 无（本地节点控制台查看）
 

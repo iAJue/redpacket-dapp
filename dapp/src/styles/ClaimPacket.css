@@ -26,6 +26,57 @@
   opacity: 0.6;
 }
 
+/* 预设散落位置，避免全部堆叠在左上角 */
+.bg-effect .decoration-item:nth-child(1) {
+  top: 6%;
+  left: 8%;
+}
+
+.bg-effect .decoration-item:nth-child(2) {
+  top: 18%;
+  right: 12%;
+}
+
+.bg-effect .decoration-item:nth-child(3) {
+  top: 40%;
+  left: 6%;
+}
+
+.bg-effect .decoration-item:nth-child(4) {
+  bottom: 35%;
+  right: 10%;
+}
+
+.bg-effect .decoration-item:nth-child(5) {
+  bottom: 18%;
+  left: 18%;
+}
+
+.bg-effect .decoration-item:nth-child(6) {
+  top: 65%;
+  right: 22%;
+}
+
+.bg-effect .decoration-item:nth-child(7) {
+  top: 12%;
+  right: 25%;
+}
+
+.bg-effect .decoration-item:nth-child(8) {
+  top: 32%;
+  left: 27%;
+}
+
+.bg-effect .decoration-item:nth-child(9) {
+  bottom: 24%;
+  right: 30%;
+}
+
+.bg-effect .decoration-item:nth-child(10) {
+  bottom: 8%;
+  left: 30%;
+}
+
 /* 金币装饰 */
 .decoration-item.coin {
   width: 40px;
@@ -143,12 +194,18 @@
 /* 红包容器 */
 .redpacket-con {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 10;
   position: relative;
+  padding: 36px 32px 32px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid rgba(255, 77, 79, 0.25);
+  box-shadow: 0 25px 60px rgba(255, 77, 79, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .sharer {
@@ -163,13 +220,11 @@
 .avatar-placeholder {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #FF4D4F, #FF0000);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .name {
@@ -278,6 +333,18 @@
   width: 100%;
 }
 
+.connect-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.connect-warning {
+  font-size: 13px;
+  color: #ff4d4f;
+  text-align: center;
+}
+
 .btn-open {
   width: 100%;
   padding: 16px 20px;
@@ -351,8 +418,8 @@
 /* 响应式设计 */
 @media (max-width: 768px) {
   .redpacket-con {
-    max-width: 90%;
-    padding: 0 20px;
+    max-width: 92%;
+    padding: 28px 20px;
   }
 
   .money .num {
@@ -393,7 +460,7 @@
 
   .redpacket-con {
     max-width: 100%;
-    padding: 20px;
+    padding: 24px 18px;
   }
 
   .money .num {
@@ -417,4 +484,3 @@
     font-size: 14px;
   }
 }
-
