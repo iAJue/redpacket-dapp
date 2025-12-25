@@ -116,7 +116,7 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
 
       <div className="form-container">
         <div className="form-header">
-          <h1>🎊 发链上红包</h1>
+          <h1>🎊 链上红包</h1>
           <p>链上红包 · 安全透明 · 去中心化 · 和好友共享好运</p>
         </div>
 
