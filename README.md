@@ -92,6 +92,32 @@ redpacket-web3/
 
 Hardhat 节点或 BSC 测试网都可以复用以上接口，部署脚本会把最新地址同步到前端。若重新部署，请重新运行 `npm run deploy`。  
 
+## 智能合约(USDC.sol)
+
+- 编译全部合约
+
+  `npx hardhat compile`
+- 部署 ERC-20 USDC 代币
+
+  `npx hardhat run scripts/deploy-usdc.js --network localhost`
+
+- 命令
+
+  - 进入Hardhat环境
+
+  `npx hardhat console --network localhost`
+
+  - 发送测试代币
+  ```JavaScript
+  const usdc = await ethers.getContractAt("USDC","0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512");
+  await usdc.transfer("0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",ethers.utils.parseUnits("1000", 6));
+  ```
+
+  - 查询余额
+  ```js
+  const balance = await usdc.balanceOf("0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f");
+  console.log(ethers.utils.formatUnits(balance, 6));
+  ```
 
 ## 网络
 
