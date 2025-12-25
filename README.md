@@ -9,7 +9,9 @@
 - 🔗 **智能合约**: 使用 Solidity 编写的安全智能合约处理所有逻辑
 - 🌐 **多链支持**: 支持本地测试网和 BSC 测试网
 - 💼 **Web3 集成**: 使用 MetaMask 钱包连接
-- 🚀 **完全去中心化**: 没有后端服务器，所有数据存储在区块链## 技术栈
+- 🚀 **完全去中心化**: 没有后端服务器，所有数据存储在区块链
+
+## 技术栈
 
 - **前端**：React 19、React Router 6、TypeScript、Vite、Ethers v6
 - **合约层**：Hardhat、Solidity 0.8.x
@@ -94,26 +96,26 @@ Hardhat 节点或 BSC 测试网都可以复用以上接口，部署脚本会把�
 ## 网络
 
 ### Local Hardhat
-Network Name: Hardhat Localhost  
-RPC URL: http://127.0.0.1:8545  
-Chain ID: 1337 (0x7a69)  
-Currency Symbol: ETH  
-Block Explorer: 无（本地节点控制台查看）
+- Network Name: Hardhat Localhost  
+- RPC URL: http://127.0.0.1:8545  
+- Chain ID: 1337 (0x7a69)  
+- Currency Symbol: ETH  
+- Block Explorer: 无（本地节点控制台查看）
 
 ### BSC Testnet
-Network Name: BSC Testnet
-RPC URL: https://data-seed-prebsc-1-s1.binance.org:8545
-Chain ID: 97
-Currency Symbol: tBNB
-Block Explorer: https://testnet.bscscan.com
+- Network Name: BSC Testnet
+- RPC URL: https://data-seed-prebsc-1-s1.binance.org:8545
+- Chain ID: 97
+- Currency Symbol: tBNB
+- Block Explorer: https://testnet.bscscan.com
 
 
 ## 常见问题
-
-- **为什么改用 Vite？**  
-  Vite + React 19 提供了更快的启动速度、更好的类型系统以及原生的 ESM 支持，便于后续扩展。
 
 - **如何使用 BSC Testnet？**  
   在 Hardhat 配置中增加 BSC 网络并部署，或将 `VITE_RPC_URL` 指向 BSC 节点，同时把 `VITE_CONTRACT_ADDRESS` 改为对应的链上地址即可。
 
 祝你抢红包愉快！🧨
+
+
+> ⚠️ 提醒：本项目仅用于功能与可行性测试，尚未部署至测试网或主网，未经过完整安全测试，请勿用于实际资产操作，由此产生的风险需自行承担。
