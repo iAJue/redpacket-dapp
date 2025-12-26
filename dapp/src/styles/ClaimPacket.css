@@ -251,6 +251,12 @@
   font-family: 'Arial', sans-serif;
 }
 
+.token-label {
+  font-size: 18px;
+  font-weight: 500;
+  color: #FF4D4F;
+}
+
 /* 状态文本 */
 .status {
   font-size: 18px;

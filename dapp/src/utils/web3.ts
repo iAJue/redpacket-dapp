@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { CONTRACT_ABI } from '../config/contract';
 import contractAddresses from '../config/contractAddresses.json';
+import type { AssetOption } from '../config/assets';
 
 type EthereumProvider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
@@ -19,6 +20,12 @@ const rpcUrl = import.meta.env.VITE_RPC_URL ?? FALLBACK_RPC;
 const configuredContractAddress =
   (import.meta.env.VITE_CONTRACT_ADDRESS as string | undefined)?.trim() ||
   contractAddresses.redPacket;
+const ERC20_ABI = [
+  'function approve(address spender, uint256 amount) public returns (bool)',
+  'function allowance(address owner, address spender) public view returns (uint256)',
+  'function balanceOf(address owner) public view returns (uint256)',
+  'function decimals() public view returns (uint8)',
+];
 
 export const getProvider = () => {
   if (typeof window !== 'undefined' && window.ethereum) {
@@ -30,6 +37,11 @@ export const getProvider = () => {
 export const getContract = (signerOrProvider?: ethers.Provider | ethers.Signer) => {
   const finalProvider = signerOrProvider ?? getProvider();
   return new ethers.Contract(configuredContractAddress, CONTRACT_ABI, finalProvider);
+};
+
+export const getTokenContract = (tokenAddress: string, signerOrProvider?: ethers.Provider | ethers.Signer) => {
+  const finalProvider = signerOrProvider ?? getProvider();
+  return new ethers.Contract(tokenAddress, ERC20_ABI, finalProvider);
 };
 
 export const connectWallet = async () => {

@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract RedPacket {
+    using SafeERC20 for IERC20;
+
     struct Packet {
         address creator;
+        address token;
         uint256 totalAmount;
         uint256 totalCount;
         uint256 claimedCount;
@@ -12,44 +18,57 @@ contract RedPacket {
         mapping(address => bool) claimed;
     }
 
-    mapping(bytes32 => Packet) public packets;
-    mapping(bytes32 => uint256[]) public amounts;
+    mapping(bytes32 => Packet) private packets;
+    mapping(bytes32 => uint256[]) private amounts;
 
-    event RedPacketCreated(bytes32 indexed packetId, address indexed creator, uint256 totalAmount, uint256 totalCount);
+    event RedPacketCreated(
+        bytes32 indexed packetId,
+        address indexed creator,
+        address indexed token,
+        uint256 totalAmount,
+        uint256 totalCount
+    );
     event RedPacketClaimed(bytes32 indexed packetId, address indexed claimer, uint256 amount);
     event RedPacketExpired(bytes32 indexed packetId);
 
     uint256 public constant EXPIRE_TIME = 7 days;
+    address private constant NATIVE_TOKEN = address(0);
 
-    // 创建红包
     function createRedPacket(
         bytes32 packetId,
         uint256 totalCount,
-        uint256[] calldata amounts_
+        uint256[] calldata amounts_,
+        address token
     ) external payable {
-        require(msg.value > 0, "Amount must be greater than 0");
         require(totalCount > 0, "Count must be greater than 0");
         require(amounts_.length == totalCount, "Invalid amounts");
 
-        uint256 totalAmount = 0;
-        for (uint256 i = 0; i < amounts_.length; i++) {
-            totalAmount += amounts_[i];
+        Packet storage packet = packets[packetId];
+        require(packet.creator == address(0) || !packet.active, "Packet exists");
+
+        uint256 totalAmount = _sumArray(amounts_);
+        require(totalAmount > 0, "Amount must be greater than 0");
+
+        packet.creator = msg.sender;
+        packet.token = token;
+        packet.totalAmount = totalAmount;
+        packet.totalCount = totalCount;
+        packet.claimedCount = 0;
+        packet.createdAt = block.timestamp;
+        packet.active = true;
+
+        _storeAmounts(packetId, amounts_);
+
+        if (token == NATIVE_TOKEN) {
+            require(msg.value == totalAmount, "Total amount mismatch");
+        } else {
+            require(msg.value == 0, "Do not send ETH for tokens");
+            IERC20(token).safeTransferFrom(msg.sender, address(this), totalAmount);
         }
-        require(msg.value == totalAmount, "Total amount mismatch");
 
-        packets[packetId].creator = msg.sender;
-        packets[packetId].totalAmount = msg.value;
-        packets[packetId].totalCount = totalCount;
-        packets[packetId].claimedCount = 0;
-        packets[packetId].createdAt = block.timestamp;
-        packets[packetId].active = true;
-
-        amounts[packetId] = amounts_;
-
-        emit RedPacketCreated(packetId, msg.sender, msg.value, totalCount);
+        emit RedPacketCreated(packetId, msg.sender, token, totalAmount, totalCount);
     }
 
-    // 领取红包
     function claimRedPacket(bytes32 packetId, uint256 index) external {
         Packet storage packet = packets[packetId];
 
@@ -58,7 +77,6 @@ contract RedPacket {
         require(packet.claimedCount < packet.totalCount, "All packets claimed");
         require(index < amounts[packetId].length, "Invalid index");
 
-        // 检查红包是否过期（7天）
         if (block.timestamp > packet.createdAt + EXPIRE_TIME) {
             packet.active = false;
             emit RedPacketExpired(packetId);
@@ -72,18 +90,20 @@ contract RedPacket {
         packet.claimedCount++;
         amounts[packetId][index] = 0;
 
-        (bool success, ) = msg.sender.call{value: amount}("");
-        require(success, "Transfer failed");
+        if (packet.token == NATIVE_TOKEN) {
+            (bool success, ) = msg.sender.call{value: amount}("");
+            require(success, "Transfer failed");
+        } else {
+            IERC20(packet.token).safeTransfer(msg.sender, amount);
+        }
 
         emit RedPacketClaimed(packetId, msg.sender, amount);
     }
 
-    // 查询是否已领取
     function hasClaimed(bytes32 packetId, address user) external view returns (bool) {
         return packets[packetId].claimed[user];
     }
 
-    // 查询红包信息
     function getPacketInfo(bytes32 packetId)
         external
         view
@@ -92,37 +112,62 @@ contract RedPacket {
             uint256 totalAmount,
             uint256 totalCount,
             uint256 claimedCount,
-            bool active
+            bool active,
+            address token
         )
     {
         Packet storage packet = packets[packetId];
-        return (packet.creator, packet.totalAmount, packet.totalCount, packet.claimedCount, packet.active);
+        return (
+            packet.creator,
+            packet.totalAmount,
+            packet.totalCount,
+            packet.claimedCount,
+            packet.active,
+            packet.token
+        );
     }
 
-    // 查询红包金额列表
     function getPacketAmounts(bytes32 packetId) external view returns (uint256[] memory) {
         return amounts[packetId];
     }
 
-    // 红包过期后，创建者可以退款
     function refundExpiredPacket(bytes32 packetId) external {
         Packet storage packet = packets[packetId];
-        
+
         require(packet.creator == msg.sender, "Only creator can refund");
         require(block.timestamp > packet.createdAt + EXPIRE_TIME, "Packet not expired yet");
         require(packet.active, "Packet already refunded");
 
-        uint256 refundAmount = packet.totalAmount;
-        for (uint256 i = 0; i < amounts[packetId].length; i++) {
-            refundAmount -= amounts[packetId][i];
+        uint256 refundAmount = 0;
+        uint256[] storage packetAmounts = amounts[packetId];
+        for (uint256 i = 0; i < packetAmounts.length; i++) {
+            refundAmount += packetAmounts[i];
+            packetAmounts[i] = 0;
         }
 
         packet.active = false;
 
-        (bool success, ) = msg.sender.call{value: refundAmount}("");
-        require(success, "Refund failed");
+        if (packet.token == NATIVE_TOKEN) {
+            (bool success, ) = msg.sender.call{value: refundAmount}("");
+            require(success, "Refund failed");
+        } else {
+            IERC20(packet.token).safeTransfer(msg.sender, refundAmount);
+        }
     }
 
-    // 接收ETH
     receive() external payable {}
+
+    function _storeAmounts(bytes32 packetId, uint256[] calldata amounts_) internal {
+        delete amounts[packetId];
+        uint256[] storage packetAmounts = amounts[packetId];
+        for (uint256 i = 0; i < amounts_.length; i++) {
+            packetAmounts.push(amounts_[i]);
+        }
+    }
+
+    function _sumArray(uint256[] calldata values) internal pure returns (uint256 total) {
+        for (uint256 i = 0; i < values.length; i++) {
+            total += values[i];
+        }
+    }
 }

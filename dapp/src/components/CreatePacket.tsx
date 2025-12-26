@@ -1,7 +1,9 @@
 import { useState, type CSSProperties } from 'react';
 import { ethers } from 'ethers';
 import '../styles/CreatePacket.css';
-import { getContract, getProvider, toWei } from '../utils/web3';
+import { getContract, getProvider, getTokenContract, toWei } from '../utils/web3';
+import { ASSETS, type AssetOption } from '../config/assets';
+import addresses from '../config/contractAddresses.json';
 import { getFriendlyError } from '../utils/errors';
 
 type CreatePacketProps = {
@@ -15,6 +17,7 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
   const [statusMessage, setStatusMessage] = useState('');
   const [shareLink, setShareLink] = useState('');
   const [error, setError] = useState('');
+  const [asset, setAsset] = useState<AssetOption>(ASSETS[0]);
 
   const handleCreatePacket = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,22 +44,37 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
       const signer = await provider.getSigner();
       const contract = getContract(signer);
 
+      const decimals = asset.decimals;
       const randomAmounts: bigint[] = [];
       let remaining = amountNumber;
 
+      const precision = Math.min(decimals, 6);
+
       for (let i = 0; i < countNumber - 1; i += 1) {
-        const randomAmount = Math.random() * remaining * 0.3;
-        randomAmounts.push(toWei(randomAmount));
+        const randomAmount = parseFloat((Math.random() * remaining * 0.3).toFixed(precision));
+        randomAmounts.push(toWei(randomAmount || 0, decimals));
         remaining -= randomAmount;
       }
 
-      randomAmounts.push(toWei(Math.max(remaining, 0)));
+      randomAmounts.push(toWei(parseFloat(Math.max(remaining, 0).toFixed(precision)), decimals));
 
       const packetId = ethers.id(`${Date.now()}-${Math.random()}`);
-      const totalWei = toWei(amountNumber);
+      const totalUnits = randomAmounts.reduce((acc, value) => acc + value, 0n);
 
-      const tx = await contract.createRedPacket(packetId, countNumber, randomAmounts, {
-        value: totalWei,
+      if (!asset.isNative) {
+        const provider = getProvider();
+        const signer = await provider.getSigner();
+        const tokenContract = getTokenContract(asset.address, signer);
+        const allowance = await tokenContract.allowance(account, addresses.redPacket);
+        if (allowance < totalUnits) {
+          const approveTx = await tokenContract.approve(addresses.redPacket, totalUnits);
+          setStatusMessage('授权代币中，请在钱包确认...');
+          await approveTx.wait();
+        }
+      }
+
+      const tx = await contract.createRedPacket(packetId, countNumber, randomAmounts, asset.address, {
+        value: asset.isNative ? totalUnits : 0n,
       });
 
       setStatusMessage('⏳ 链上确认中，请在钱包内确认交易...');
@@ -123,7 +141,24 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
         {!shareLink ? (
           <form onSubmit={handleCreatePacket} className="packet-form">
             <div className="form-group">
-              <label htmlFor="amount">总金额 (ETH)</label>
+              <div className="form-group-inline">
+                <label htmlFor="amount">总金额 ({asset.symbol})</label>
+                <select
+                  value={asset.address}
+                  onChange={(event) => {
+                    const nextAsset = ASSETS.find((item) => item.address === event.target.value);
+                    if (nextAsset) {
+                      setAsset(nextAsset);
+                    }
+                  }}
+                >
+                  {ASSETS.map((item) => (
+                    <option key={item.address} value={item.address}>
+                      {item.symbol}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="input-wrapper">
                 <span className="currency-symbol">币</span>
                 <input
@@ -159,12 +194,14 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
               <div className="summary-box">
                 <div className="summary-item">
                   <span>总金额</span>
-                  <strong>{Number(totalAmount).toFixed(4)} ETH</strong>
+                  <strong>
+                    {Number(totalAmount).toFixed(4)} {asset.symbol}
+                  </strong>
                 </div>
                 <div className="summary-item">
                   <span>预计均值</span>
                   <strong>
-                    {(Number(totalAmount) / Math.max(Number(totalCount), 1)).toFixed(4)} ETH
+                    {(Number(totalAmount) / Math.max(Number(totalCount), 1)).toFixed(4)} {asset.symbol}
                   </strong>
                 </div>
               </div>

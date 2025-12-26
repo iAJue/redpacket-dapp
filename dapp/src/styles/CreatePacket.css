@@ -131,6 +131,22 @@
   font-size: 14px;
 }
 
+.form-group-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-group-inline select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
 .input-wrapper {
   position: relative;
   display: flex;
@@ -473,4 +489,3 @@
     font-size: 20px;
   }
 }
-

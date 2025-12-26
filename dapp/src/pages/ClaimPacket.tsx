@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import '../styles/ClaimPacket.css';
-import { getContract, getProvider, parseWei } from '../utils/web3';
+import { ethers } from 'ethers';
+import { getContract, getProvider } from '../utils/web3';
+import { getAssetByAddress, ZERO_ADDRESS } from '../config/assets';
 import { getFriendlyError } from '../utils/errors';
 
 type ClaimPacketProps = {
@@ -16,6 +18,10 @@ type PacketInfo = {
   totalCount: number;
   claimedCount: number;
   active: boolean;
+  tokenAddress: string;
+  symbol: string;
+  decimals: number;
+  isNative: boolean;
 };
 
 export const ClaimPacket = ({ account, onConnect, connectError }: ClaimPacketProps) => {
@@ -35,12 +41,25 @@ export const ClaimPacket = ({ account, onConnect, connectError }: ClaimPacketPro
       const contract = getContract(provider);
       const info = await contract.getPacketInfo(packetId);
 
+      const assetMeta =
+        getAssetByAddress(info.token) ??
+        {
+          symbol: info.token === ZERO_ADDRESS ? 'ETH' : 'TOKEN',
+          decimals: info.token === ZERO_ADDRESS ? 18 : 18,
+          address: info.token,
+          isNative: info.token === ZERO_ADDRESS,
+        };
+
       const nextInfo: PacketInfo = {
         creator: info.creator,
-        totalAmount: Number(parseWei(info.totalAmount)),
+        totalAmount: Number(ethers.formatUnits(info.totalAmount, assetMeta.decimals)),
         totalCount: Number(info.totalCount),
         claimedCount: Number(info.claimedCount),
         active: info.active,
+        tokenAddress: info.token,
+        symbol: assetMeta.symbol,
+        decimals: assetMeta.decimals,
+        isNative: assetMeta.isNative,
       };
 
       setPacketInfo(nextInfo);
@@ -173,6 +192,7 @@ export const ClaimPacket = ({ account, onConnect, connectError }: ClaimPacketPro
           <div className="money">
             <span className="symbol">币</span>
             <span className="num">{packetInfo.totalAmount.toFixed(4)}</span>
+            <span className="token-label">{packetInfo.symbol}</span>
           </div>
         )}
 
@@ -200,7 +220,9 @@ export const ClaimPacket = ({ account, onConnect, connectError }: ClaimPacketPro
         <div className="packet-details">
           <div className="detail-item">
             <span className="detail-label">总金额</span>
-            <span className="detail-value">{packetInfo.totalAmount.toFixed(4)} ETH</span>
+            <span className="detail-value">
+              {packetInfo.totalAmount.toFixed(4)} {packetInfo.symbol}
+            </span>
           </div>
           <div className="detail-item">
             <span className="detail-label">数量</span>
