@@ -110,7 +110,7 @@ Hardhat 节点或 BSC 测试网都可以复用以上接口，部署脚本会把�
   - 发送测试代币
   ```JavaScript
   const usdc = await ethers.getContractAt("USDC","0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512");
-  await usdc.transfer("0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",ethers.utils.parseUnits("1000", 6));
+  await usdc.transfer("0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",ethers.utils.parseUnits("1000", 6));
   ```
 
   - 查询余额

@@ -1,9 +1,8 @@
 import { useState, type CSSProperties } from 'react';
 import { ethers } from 'ethers';
 import '../styles/CreatePacket.css';
-import { getContract, getProvider, getTokenContract, toWei } from '../utils/web3';
+import { getContract, getProvider, getTokenContract, toWei, RED_PACKET_ADDRESS } from '../utils/web3';
 import { ASSETS, type AssetOption } from '../config/assets';
-import addresses from '../config/contractAddresses.json';
 import { getFriendlyError } from '../utils/errors';
 
 type CreatePacketProps = {
@@ -65,9 +64,9 @@ export const CreatePacket = ({ account }: CreatePacketProps) => {
         const provider = getProvider();
         const signer = await provider.getSigner();
         const tokenContract = getTokenContract(asset.address, signer);
-        const allowance = await tokenContract.allowance(account, addresses.redPacket);
+        const allowance = await tokenContract.allowance(account, RED_PACKET_ADDRESS);
         if (allowance < totalUnits) {
-          const approveTx = await tokenContract.approve(addresses.redPacket, totalUnits);
+          const approveTx = await tokenContract.approve(RED_PACKET_ADDRESS, totalUnits);
           setStatusMessage('授权代币中，请在钱包确认...');
           await approveTx.wait();
         }

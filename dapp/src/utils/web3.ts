@@ -17,7 +17,7 @@ declare global {
 
 const FALLBACK_RPC = 'http://127.0.0.1:8545';
 const rpcUrl = import.meta.env.VITE_RPC_URL ?? FALLBACK_RPC;
-const configuredContractAddress =
+export const RED_PACKET_ADDRESS =
   (import.meta.env.VITE_CONTRACT_ADDRESS as string | undefined)?.trim() ||
   contractAddresses.redPacket;
 const ERC20_ABI = [
@@ -36,7 +36,7 @@ export const getProvider = () => {
 
 export const getContract = (signerOrProvider?: ethers.Provider | ethers.Signer) => {
   const finalProvider = signerOrProvider ?? getProvider();
-  return new ethers.Contract(configuredContractAddress, CONTRACT_ABI, finalProvider);
+  return new ethers.Contract(RED_PACKET_ADDRESS, CONTRACT_ABI, finalProvider);
 };
 
 export const getTokenContract = (tokenAddress: string, signerOrProvider?: ethers.Provider | ethers.Signer) => {
